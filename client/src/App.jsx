@@ -13,13 +13,18 @@ import Login from "./components/Login";
 import ForgotPassword from "./components/ForgotPassword";
 import Logsign from "./components/LogSign";
 import Vendor_register from "./components/Vendor_register";
+import VendorDashboard from "./components/VendorDashboard";
+import ManageServices from "./components/ManageServices";
+import ManageProfile from "./components/ManageProfile";
+import ManageInquiries from "./components/ManageInquiries";
 import LoginVendor from "./components/LoginVendor";
 import CTASection from "./components/CTASection";
+import VendorProfileForm from "./components/VendorProfileForm";
 
 function App() {
   return (
     <Router>
-    <Navbar /> {/* Navbar will always be visible */}
+    <Navbar /> 
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/Explore" element={<Explore />} />
@@ -31,6 +36,14 @@ function App() {
       <Route path = "/vendor_register" element = {< Vendor_register />} />
       <Route path="/loginvendor" element={<LoginVendor />} />
       <Route path="/logsign" element={<Logsign />} />
+      <Route path="/VendorProfileForm" element={<VendorProfileForm/>} />
+      <Route path = "/vendorDashboard/*" element = {< VendorDashboard />} />
+      <Route path = "/manageServices" element = {< ManageServices />} />
+      <Route path = "/manageInquiries" element = {< ManageInquiries />} />
+      <Route path="/vendor/dashboard/:vendorId" element={<ManageProfile />} />
+
+
+      
       <Route path="/footer" element={<Footer />} />
       <Route path="/CTASection" element={<CTASection />} />
 

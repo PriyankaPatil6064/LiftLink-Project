@@ -669,7 +669,6 @@ footer{
   box-shadow: 0px 8px 16px rgba(255, 255, 255, 0.1);
 }
 
-/* 📌 Responsive Design */
 @media (max-width: 768px) {
   .home-about-container {
     flex-direction: column;
@@ -705,10 +704,119 @@ footer{
 
 .home-about-text h2,
 .cta-title { 
-  font-family: "Poppins", sans-serif; /* Clean & Professional */
-  font-size: 2.5rem; /* Balanced size */
+  font-family: "Poppins", sans-serif; 
+  font-size: 2.5rem; 
   font-weight: 600;
-  color: #F5F5F5; /* Light Gray for subtle contrast */
-  text-transform: capitalize; /* Softer than uppercase */
+  color: #F5F5F5; /* Light Gray  */
+  text-transform: capitalize; 
   letter-spacing: 1px;
+}
+
+
+/* //vendor registration form  */
+
+.register-container {
+  min-height: 100vh;
+  background-color: #0d1b2a; /* Navy dark blue */
+}
+
+.register-form {
+  width: 500px;
+  background: rgba(255, 255, 255, 0.1); /* Transparent form */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.register-form input::placeholder {
+  color: #ccc;
+}
+
+.register-form input {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+}
+
+.register-form input:focus {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.register-form button {
+  background-color: #1b263b;
+  color: white;
+}
+
+.register-form button:hover {
+  background-color: #415a77;
+}
+
+/* vendor_login page  */
+.login-container {
+  min-height: 100vh;
+  background-color: #0d1b2a; /* Navy dark blue background */
+}
+
+.login-form {
+  width: 400px;
+  background: rgba(255, 255, 255, 0.1); /* Transparent form */
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.login-form input::placeholder {
+  color: #ccc;
+}
+
+.login-form input {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: #fff;
+}
+
+.login-form input:focus {
+  background-color: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.login-form button {
+  background-color: #1b263b;
+  color: white;
+}
+
+.login-form button:hover {
+  background-color: #415a77;
+}
+
+/* manage profile page  */
+
+.vendor-profile {
+  background-color: #0c1a3a;
+  border-radius: 15px;
+  color: #fff;
+}
+
+.vendor-profile label {
+  color: #fff;
+}
+
+.vendor-profile input,
+.vendor-profile textarea {
+  background-color: #11224d;
+  color: #fff;
+  border: 1px solid #33436e;
+}
+
+.vendor-profile button {
+  background-color: #1b3c73;
+  border-color: #1b3c73;
+}
+
+.vendor-profile button:hover {
+  background-color: #2350a3;
+}
+
+.vendor-profile img {
+  border-radius: 8px;
+  margin-top: 10px;
 }
