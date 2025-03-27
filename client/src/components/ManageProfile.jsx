@@ -1,26 +1,35 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-// import './VendorManageProfile.css';
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 
-const VendorManageProfile = ({ vendorId }) => {
+const ManageProfile = () => {
     const [vendor, setVendor] = useState({});
     const [services, setServices] = useState([]);
     const [logo, setLogo] = useState(null);
     const [projectImages, setProjectImages] = useState([]);
+    const [projectDescriptions, setProjectDescriptions] = useState([]);
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
+    // Get vendorId from localStorage
+    const vendorId = localStorage.getItem("vendorId");
 
-    const fetchProfile = async () => {
+    console.log("Vendor ID being sent:", vendorId);
+    const fetchProfile = useCallback(async () => {
+        if (!vendorId) {
+            console.error("Vendor ID not found in localStorage");
+            return;
+        }
         try {
             const res = await axios.get(`http://localhost:5000/vendor/profile/${vendorId}`);
             setVendor(res.data);
             setServices(res.data.services || []);
         } catch (err) {
-            console.error('Fetch Error:', err);
+            console.error("Fetch Error:", err);
         }
-    };
+    }, [vendorId]);
+
+    useEffect(() => {
+        console.log("Fetching profile for vendorId:", vendorId);
+        fetchProfile();
+    }, [fetchProfile]);
 
     const handleChange = (e) => setVendor({ ...vendor, [e.target.name]: e.target.value });
 
@@ -30,26 +39,35 @@ const VendorManageProfile = ({ vendorId }) => {
         setServices(newServices);
     };
 
-    const addService = () => setServices([...services, '']);
+    const addService = () => setServices([...services, ""]);
     const removeService = (idx) => setServices(services.filter((_, index) => index !== idx));
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (!vendorId) {
+            alert("Vendor ID is missing. Please log in again.");
+            return;
+        }
+
         const formData = new FormData();
         Object.entries(vendor).forEach(([key, value]) => formData.append(key, value));
-        formData.append('services', JSON.stringify(services));
-        if (logo) formData.append('logo', logo);
-        projectImages.forEach((img) => formData.append('projectImages', img));
+        formData.append("services", JSON.stringify(services));
+        formData.append("projectDescriptions", JSON.stringify(projectDescriptions));
+
+        if (logo) formData.append("logo", logo);
+        projectImages.forEach((img) => formData.append("projectImages", img));
 
         try {
-            await axios.put(`http://localhost:5000/vendor/profile/${vendorId}`, formData, {
-                headers: { 'Content-Type': 'multipart/form-data' }
-            });
-            alert('Profile Updated');
-            fetchProfile();
+            const response = await axios.put(
+                `http://localhost:5000/vendor/profile/${vendorId}`,
+                formData,
+                { headers: { "Content-Type": "multipart/form-data" } }
+            );
+            alert("Profile Updated Successfully!");
+            fetchProfile(); // Refresh profile after update
         } catch (err) {
-            console.error('Update Error:', err);
-            alert('Failed to update');
+            console.error("Update Error:", err);
+            alert("Failed to update profile!");
         }
     };
 
@@ -59,28 +77,28 @@ const VendorManageProfile = ({ vendorId }) => {
             <form onSubmit={handleSubmit} className="text-white">
                 <div className="form-group">
                     <label>Full Name</label>
-                    <input type="text" name="fullName" className="form-control"
-                        value={vendor.fullName || ''} onChange={handleChange} />
+                    <input type="text" name="fullname" className="form-control"
+                        value={vendor.fullname || ""} onChange={handleChange} />
                 </div>
                 <div className="form-group">
                     <label>Company Name</label>
                     <input type="text" name="companyName" className="form-control"
-                        value={vendor.companyName || ''} onChange={handleChange} />
+                        value={vendor.companyName || ""} onChange={handleChange} />
                 </div>
                 <div className="form-group">
                     <label>Description</label>
                     <textarea name="description" className="form-control"
-                        value={vendor.description || ''} onChange={handleChange}></textarea>
+                        value={vendor.description || ""} onChange={handleChange}></textarea>
                 </div>
                 <div className="form-group">
                     <label>Location</label>
                     <input type="text" name="location" className="form-control"
-                        value={vendor.location || ''} onChange={handleChange} />
+                        value={vendor.location || ""} onChange={handleChange} />
                 </div>
                 <div className="form-group">
                     <label>Contact</label>
                     <input type="text" name="contact" className="form-control"
-                        value={vendor.contact || ''} onChange={handleChange} />
+                        value={vendor.contact || ""} onChange={handleChange} />
                 </div>
 
                 {/* Services */}
@@ -97,22 +115,34 @@ const VendorManageProfile = ({ vendorId }) => {
                     <button type="button" className="btn btn-secondary mt-2" onClick={addService}>Add Service</button>
                 </div>
 
-                {/* Logo */}
+                {/* Logo Upload */}
                 <div className="form-group">
                     <label>Upload Logo</label>
                     <input type="file" className="form-control-file" onChange={(e) => setLogo(e.target.files[0])} />
-                    {vendor.logo && <img src={`http://localhost:5000/uploads/${vendor.logo}`} alt="Logo" width="100" />}
+                    {vendor.logo && (
+                        <img src={`http://localhost:5000/uploads/${vendor.logo}`} alt="Logo" width="100" />
+                    )}
                 </div>
 
-                {/* Projects */}
+                {/* Project Images Upload */}
                 <div className="form-group">
                     <label>Upload Project Images</label>
                     <input type="file" className="form-control-file" multiple onChange={(e) => setProjectImages([...e.target.files])} />
                     <div className="mt-3">
                         {vendor.projects && vendor.projects.map((proj, idx) => (
-                            <div key={idx}>
+                            <div key={idx} className="mb-2">
                                 <img src={`http://localhost:5000/uploads/${proj.image}`} alt="Project" width="120" className="mr-2" />
-                                <small className="text-light">{proj.description}</small>
+                                <input
+                                    type="text"
+                                    className="form-control mt-2"
+                                    placeholder="Project Description"
+                                    value={projectDescriptions[idx] || proj.description || ""}
+                                    onChange={(e) => {
+                                        const newDescriptions = [...projectDescriptions];
+                                        newDescriptions[idx] = e.target.value;
+                                        setProjectDescriptions(newDescriptions);
+                                    }}
+                                />
                             </div>
                         ))}
                     </div>
@@ -124,4 +154,4 @@ const VendorManageProfile = ({ vendorId }) => {
     );
 };
 
-export default VendorManageProfile;
+export default ManageProfile;  

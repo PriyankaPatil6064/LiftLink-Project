@@ -8,4 +8,6 @@ const ServiceSchema = new mongoose.Schema({
 });
 
 const Service = mongoose.model("Service", ServiceSchema);
+
+export { ServiceSchema };  // ✅ Export ServiceSchema
 export default Service;

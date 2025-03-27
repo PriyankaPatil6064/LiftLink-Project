@@ -1,16 +1,46 @@
 import express from "express";
+import mongoose from "mongoose";
 import multer from "multer";
 import Vendor from "../models/Vendor.js";
 import path from "path";
+import fs from "fs";
 
 const router = express.Router();
 
+// ✅ Ensure "uploads/" folder exists
+const uploadDir = "uploads/";
+if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
+
+// Multer Storage Configuration
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "uploads/"),
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage });
 
+// ✅ GET Vendor Profile
+router.get('/profile/:vendorId', async (req, res) => {
+  try {
+      const { vendorId } = req.params;
+
+      // Check if vendorId is a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(vendorId)) {
+          return res.status(400).json({ message: "Invalid Vendor ID format" });
+      }
+
+      const vendor = await Vendor.findById(vendorId);
+      if (!vendor) {
+          return res.status(404).json({ message: "Vendor not found" });
+      }
+
+      res.status(200).json(vendor);
+  } catch (error) {
+      console.error("Error fetching vendor:", error);
+      res.status(500).json({ message: "Server Error", error: error.message });
+  }
+});
+
+// ✅ PUT: Update Vendor Profile
 router.put(
   "/profile/:id",
   upload.fields([
@@ -20,9 +50,11 @@ router.put(
   async (req, res) => {
     try {
       const vendorId = req.params.id;
-      const vendor = await Vendor.findById(vendorId);
+      const vendor = await Vendor.findById(new mongoose.Types.ObjectId(vendorId));
+
       if (!vendor) return res.status(404).json({ message: "Vendor not found" });
 
+      // ✅ Destructure request body
       const {
         fullname,
         companyName,
@@ -36,45 +68,55 @@ router.put(
         projectDescriptions,
       } = req.body;
 
-      vendor.fullname = fullname || vendor.fullname;
-      vendor.companyName = companyName || vendor.companyName;
-      vendor.companyType = companyType || vendor.companyType;
-      vendor.location = location || vendor.location;
-      vendor.contact = contact || vendor.contact;
-      vendor.description = description || vendor.description;
-      vendor.email = email || vendor.email;
-      vendor.companyRegistrationNumber = companyRegistrationNumber || vendor.companyRegistrationNumber;
+      // ✅ Update only provided fields
+      if (fullname) vendor.fullname = fullname;
+      if (companyName) vendor.companyName = companyName;
+      if (companyType) vendor.companyType = companyType;
+      if (location) vendor.location = location;
+      if (contact) vendor.contact = contact;
+      if (description) vendor.description = description;
+      if (email) vendor.email = email;
+      if (companyRegistrationNumber) vendor.companyRegistrationNumber = companyRegistrationNumber;
 
+      // ✅ Parse services array safely
       if (services) {
         try {
-          vendor.services = JSON.parse(services);
+          vendor.services = typeof services === "string" ? JSON.parse(services) : services;
         } catch (err) {
           return res.status(400).json({ message: "Invalid services format" });
         }
       }
 
-      if (req.files && req.files.logo && req.files.logo.length > 0) {
+      // ✅ Handle Logo Upload (if provided)
+      if (req.files?.logo?.length > 0) {
         vendor.logo = req.files.logo[0].filename;
       }
 
-      const projectImages = req.files.projectImages || [];
+      // ✅ Handle Project Images & Descriptions
+      let projectImages = req.files?.projectImages || [];
       let projectDescArray = [];
 
       if (projectDescriptions) {
         try {
-          projectDescArray = JSON.parse(projectDescriptions);
+          projectDescArray = typeof projectDescriptions === "string"
+            ? JSON.parse(projectDescriptions)
+            : projectDescriptions;
         } catch (err) {
           return res.status(400).json({ message: "Invalid project descriptions format" });
         }
       }
 
+      // ✅ Append new project images without overwriting old ones
       if (projectImages.length > 0) {
-        vendor.projects = projectImages.map((img, index) => ({
+        const newProjects = projectImages.map((img, index) => ({
           image: img.filename,
           description: projectDescArray[index] || "",
         }));
+
+        vendor.projects = [...(vendor.projects || []), ...newProjects];
       }
 
+      // ✅ Save updated vendor profile
       await vendor.save();
 
       res.json({ message: "Vendor profile updated successfully!", vendor });
