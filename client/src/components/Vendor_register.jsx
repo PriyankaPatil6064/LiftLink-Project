@@ -23,15 +23,31 @@ const VendorRegister = () => {
   const handleVendorRegister = async (e) => {
     e.preventDefault();
     try {
-      const res = await axios.post("http://localhost:5000/api/vendor/auth/register", vendorData);
+      const requestData = {
+        fullname: vendorData.fullname,
+        mobile: vendorData.mobile,
+        email: vendorData.email,
+        password: vendorData.password,
+        companyName: vendorData.businessname, // ✅ Fix: Match backend schema
+        companyType: vendorData.businesstype, // ✅ Fix: Match backend schema
+        companyRegistrationNumber: vendorData.compregno, // ✅ Fix: Match backend schema
+      };
+
+      console.log("Sending Data:", requestData); // Debugging ✅
+  
+      const res = await axios.post("http://localhost:5000/api/vendor/auth/register", requestData);
+
+      console.log("Response:", res.data); // Debugging ✅
+
       console.log("Vendor Registered:", res.data);
       alert("Vendor Registered Successfully");
-      navigate("/vendor/login");
+      navigate("/LoginVendor");
     } catch (err) {
       console.error("Registration Error:", err);
       alert("Registration Failed");
     }
   };
+  
 
   return (
     <div className="register-container d-flex align-items-center justify-content-center">
