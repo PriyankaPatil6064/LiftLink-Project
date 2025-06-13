@@ -2,6 +2,8 @@ import React from "react";
 import { Link, Links } from "react-router-dom";
 import sung from "./img/sung-jin-cho--S87hxapFvU-unsplash.jpg";
 import img from "./img/images(1).jpeg";
+import b2b1 from "./img/b2b1.jpg";
+import b2b from "./img/b2b.jpg";
 
 const HomeAboutSection = () => {
   return (
@@ -20,7 +22,7 @@ const HomeAboutSection = () => {
 
         {/* Image Content */}
         <div className="home-about-image">
-          <img src={sung} alt="Elevator Services" />
+          <img src={b2b1} alt="Elevator Services" />
         </div>
       </div>
     </section>
