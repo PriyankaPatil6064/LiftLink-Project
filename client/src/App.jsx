@@ -41,9 +41,6 @@ function App() {
       <Route path = "/manageServices" element = {< ManageServices />} />
       <Route path = "/manageInquiries" element = {< ManageInquiries />} />
       <Route path="/vendor/dashboard/:vendorId" element={<ManageProfile />} />
-
-
-      
       <Route path="/footer" element={<Footer />} />
       <Route path="/CTASection" element={<CTASection />} />
 

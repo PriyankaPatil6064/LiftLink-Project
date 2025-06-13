@@ -34,8 +34,11 @@ const Login = () => {
   };
 
   return (
-    <div className="d-flex justify-content-center align-items-center vh-100">
-      <div className="card p-4 shadow" style={{ width: "400px", textAlign: "center" }}>
+    <div className="login-container">
+      <h3>Login to connect with us!</h3>
+        <div className="login-box">
+          
+
         <h2>Login</h2>
         <form onSubmit={handleLogin}>
           <div className="mb-3">

@@ -6,6 +6,7 @@ import mahad from "./img/mahad-aamir-Y-GnrESsjr0-unsplash.jpg";
 import React, { useEffect } from "react"; // Import useEffect
 import CTASection from "./CTASection";
 import HomeAboutSection from "./HomeAboutSection";
+import Footer from "./Footer";
 
 
 const Home = () => {
@@ -71,6 +72,7 @@ const Home = () => {
       </div>
       < CTASection />
       < HomeAboutSection />
+      < Footer />
     </>
 
 
