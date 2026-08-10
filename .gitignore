@@ -1,2 +1,22 @@
 node_modules/
 .env
+backend/.env
+client/.env
+
+# N-12: Exclude zip archives from git tracking
+*.zip
+
+# Build outputs
+client/build/
+backend/dist/
+
+# Uploaded files (use cloud storage in production)
+backend/uploads/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/

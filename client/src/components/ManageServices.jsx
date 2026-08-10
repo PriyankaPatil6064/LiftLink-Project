@@ -1,100 +1,191 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
-import "bootstrap/dist/css/bootstrap.min.css";
+import { toast } from "react-toastify";
+import { useAuth } from "../AuthContext";
+import api from "../api";
 
 const ManageServices = () => {
-  const vendorId = localStorage.getItem("vendorId"); 
+  const { vendor } = useAuth();
+  const vendorId = vendor?._id;
+
   const [services, setServices] = useState([]);
   const [newService, setNewService] = useState({ serviceName: "", category: "", description: "" });
+  const [loading, setLoading] = useState(true);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    if (!vendorId) return; // Prevent API call if vendorId is missing
+    if (!vendorId) return;
+    api
+      .get(`/api/services/${vendorId}`)
+      .then((res) => {
+        // API returns vendor doc or services array — handle both
+        const data = res.data;
+        setServices(Array.isArray(data) ? data : (data.services || []));
+      })
+      .catch(() => toast.error("Failed to load services."))
+      .finally(() => setLoading(false));
+  }, [vendorId]);
 
-    axios.get(`http://localhost:5000/api/services/${vendorId}`)
-      .then(response => setServices(response.data.services)) // Correct response handling
-      .catch(error => console.error("Error fetching services:", error.response?.data || error.message));
-  }, [vendorId]); 
-
-  const handleAddService = () => {
+  const handleAddService = async () => {
     if (!newService.serviceName || !newService.category || !newService.description) {
-      alert("All fields are required!");
+      toast.warning("All fields are required.");
       return;
     }
-
-    axios.post("http://localhost:5000/api/services/add", { vendorId, ...newService })
-      .then(response => {
-        setServices([...services, response.data.service]); // Correct response handling
-        setNewService({ serviceName: "", category: "", description: "" });
-      })
-      .catch(error => console.error("Error adding service:", error.response?.data || error.message));
+    setAdding(true);
+    try {
+      const res = await api.post("/api/services/add", { vendorId, ...newService });
+      setServices([...services, res.data.newService]);
+      setNewService({ serviceName: "", category: "", description: "" });
+      toast.success("Service added!");
+    } catch (err) {
+      toast.error(err.response?.data?.error || "Failed to add service.");
+    } finally {
+      setAdding(false);
+    }
   };
 
-  const handleDeleteService = (serviceId) => {
-    axios.delete(`http://localhost:5000/api/services/${vendorId}/${serviceId}`)
-      .then(() => {
-        setServices(services.filter(service => service._id !== serviceId));
-      })
-      .catch(error => console.error("Error deleting service:", error.response?.data || error.message));
+  const handleDeleteService = async (serviceId) => {
+    try {
+      await api.delete(`/api/services/${vendorId}/${serviceId}`);
+      setServices(services.filter((s) => s._id !== serviceId));
+      toast.success("Service deleted.");
+    } catch {
+      toast.error("Failed to delete service.");
+    }
   };
+
+  const cardStyle = {
+    background: "rgba(255,255,255,0.04)",
+    borderRadius: "12px",
+    padding: "1.5rem",
+    marginBottom: "1.5rem",
+    border: "1px solid rgba(212,175,55,0.1)",
+  };
+  const inputStyle = {
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(212,175,55,0.25)",
+    borderRadius: "8px",
+    color: "#fff",
+    padding: "0.6rem 1rem",
+    width: "100%",
+    marginBottom: "0.75rem",
+    fontSize: "0.9rem",
+  };
+
+  if (loading) {
+    return (
+      <div style={{ textAlign: "center", padding: "4rem", color: "#d4af37" }}>
+        <div className="spinner-border" role="status" style={{ color: "#d4af37" }}></div>
+        <p style={{ marginTop: "1rem" }}>Loading services...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mt-4">
-      <div className="card p-4 shadow-lg" style={{ background: "#0A1931", color: "white", borderRadius: "12px" }}>
-        <h2 className="text-center mb-4">Manage Services</h2>
+    <div style={{ maxWidth: "800px" }}>
+      <h2 style={{ color: "#f8e3a1", marginBottom: "2rem", fontWeight: 700 }}>Manage Services</h2>
 
-        {/* Add New Service Form */}
-        <div className="card p-4 mb-4 shadow-sm" style={{ background: "#162447", borderRadius: "10px" }}>
-          <h4 className="text-white mb-3">Add New Service</h4>
-          <input
-            type="text"
-            className="form-control my-2"
-            placeholder="Service Name"
-            value={newService.serviceName}
-            onChange={(e) => setNewService({ ...newService, serviceName: e.target.value })}
-            style={{ background: "#1F4068", color: "white", border: "none" }}
-          />
-          <input
-            type="text"
-            className="form-control my-2"
-            placeholder="Category"
-            value={newService.category}
-            onChange={(e) => setNewService({ ...newService, category: e.target.value })}
-            style={{ background: "#1F4068", color: "white", border: "none" }}
-          />
-          <textarea
-            className="form-control my-2"
-            placeholder="Description"
-            value={newService.description}
-            onChange={(e) => setNewService({ ...newService, description: e.target.value })}
-            style={{ background: "#1F4068", color: "white", border: "none" }}
-          />
-          <button className="btn btn-primary mt-2 w-100" onClick={handleAddService} style={{ background: "#E43F5A", border: "none" }}>
-            Add Service
-          </button>
-        </div>
+      {/* Add New Service */}
+      <div style={cardStyle}>
+        <h5 style={{ color: "#d4af37", marginBottom: "1rem" }}>Add New Service</h5>
+        <input
+          type="text"
+          placeholder="Service Name"
+          value={newService.serviceName}
+          onChange={(e) => setNewService({ ...newService, serviceName: e.target.value })}
+          style={inputStyle}
+        />
+        <input
+          type="text"
+          placeholder="Category (e.g., Elevator, Home Lift, AMC)"
+          value={newService.category}
+          onChange={(e) => setNewService({ ...newService, category: e.target.value })}
+          style={inputStyle}
+        />
+        <textarea
+          placeholder="Description"
+          value={newService.description}
+          onChange={(e) => setNewService({ ...newService, description: e.target.value })}
+          style={{ ...inputStyle, minHeight: "80px", resize: "vertical" }}
+        />
+        <button
+          onClick={handleAddService}
+          disabled={adding}
+          style={{
+            padding: "0.7rem 1.5rem",
+            background: "linear-gradient(135deg, #d4af37, #f8e3a1)",
+            color: "#0a192f",
+            border: "none",
+            borderRadius: "8px",
+            fontWeight: 700,
+            cursor: adding ? "not-allowed" : "pointer",
+          }}
+        >
+          {adding ? "Adding..." : "+ Add Service"}
+        </button>
+      </div>
 
-        {/* List of Services */}
-        <div className="card p-4 shadow-sm" style={{ background: "#162447", borderRadius: "10px" }}>
-          <h4 className="text-white mb-3">Existing Services</h4>
-          {services.length > 0 ? (
-            <ul className="list-group">
-              {services.map(service => (
-                <li key={service._id} className="list-group-item d-flex justify-content-between align-items-center"
-                  style={{ background: "#1F4068", color: "white", border: "none", borderRadius: "8px", marginBottom: "5px" }}>
-                  <div>
-                    <strong>{service.serviceName}</strong> - {service.category}
-                    <p className="mb-1">{service.description}</p>
-                  </div>
-                  <button className="btn btn-danger btn-sm" onClick={() => handleDeleteService(service._id)}>
-                    Delete
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-white">No services added yet.</p>
-          )}
-        </div>
+      {/* Existing Services */}
+      <div style={cardStyle}>
+        <h5 style={{ color: "#d4af37", marginBottom: "1rem" }}>
+          Your Services ({services.length})
+        </h5>
+        {services.length === 0 ? (
+          <p style={{ color: "rgba(255,255,255,0.4)", textAlign: "center", padding: "2rem 0" }}>
+            No services added yet. Add your first service above.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+            {services.map((service) => (
+              <div
+                key={service._id}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  background: "rgba(255,255,255,0.04)",
+                  padding: "1rem 1.25rem",
+                  borderRadius: "8px",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                }}
+              >
+                <div>
+                  <strong style={{ color: "#f8e3a1" }}>{service.serviceName}</strong>
+                  <span
+                    style={{
+                      marginLeft: "0.75rem",
+                      background: "rgba(212,175,55,0.15)",
+                      color: "#d4af37",
+                      padding: "0.2rem 0.6rem",
+                      borderRadius: "20px",
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    {service.category}
+                  </span>
+                  <p style={{ color: "rgba(255,255,255,0.5)", margin: "0.4rem 0 0", fontSize: "0.875rem" }}>
+                    {service.description}
+                  </p>
+                </div>
+                <button
+                  onClick={() => handleDeleteService(service._id)}
+                  style={{
+                    padding: "0.4rem 0.9rem",
+                    background: "rgba(228,63,90,0.15)",
+                    border: "1px solid rgba(228,63,90,0.4)",
+                    color: "#ff6b6b",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                    flexShrink: 0,
+                    marginLeft: "1rem",
+                  }}
+                >
+                  Delete
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
