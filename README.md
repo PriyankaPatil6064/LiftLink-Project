@@ -298,26 +298,6 @@ Frontend starts at `http://localhost:3000`
 
 ---
 
-## 🔑 Environment Variables
-
-Create `.env` files from the provided `.env.example` templates. **Never commit `.env` files.**
-
-### Backend (`backend/.env`)
-
-| Variable | Description |
-|----------|-------------|
-| `MONGO_URI` | MongoDB connection string |
-| `PORT` | Server port (default: `5000`) |
-| `NODE_ENV` | `development` or `production` |
-| `JWT_SECRET` | Random secret for JWT signing (64+ characters recommended) |
-| `ALLOWED_ORIGINS` | Comma-separated allowed CORS origins |
-| `CLIENT_URL` | Frontend URL for email links |
-| `EMAIL_FROM` | Gmail address for sending emails |
-| `EMAIL_PASSWORD` | Gmail App Password ([how to generate](https://myaccount.google.com/apppasswords)) |
-| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name |
-| `CLOUDINARY_API_KEY` | Cloudinary API key |
-| `CLOUDINARY_API_SECRET` | Cloudinary API secret |
-
 ### Frontend (`client/.env`)
 
 | Variable | Description |
@@ -343,18 +323,6 @@ All production secrets are configured through each platform's environment variab
 
 ---
 
-## 🔒 Security
-
-- **Helmet.js** — Secure HTTP headers (XSS, CSRF, clickjacking protection)
-- **CORS** — Strict origin allowlist
-- **Rate Limiting** — Auth endpoints: 20 req/15min; General API: 300 req/15min
-- **mongo-sanitize** — NoSQL injection prevention
-- **bcryptjs** — Salted password hashing (10 rounds)
-- **JWT** — Stateless authentication with role-based expiry
-- **RBAC** — `protect()` + `authorize(role)` middleware on every protected route
-- **Input Validation** — Required fields, ObjectId validation, file type and size limits
-
----
 
 ## 🚀 Future Enhancements
 
@@ -367,13 +335,7 @@ All production secrets are configured through each platform's environment variab
 - [ ] Vendor verification badges with document upload
 - [ ] SMS notifications via Twilio
 
----
 
-## 📄 License
-
-MIT License — see [LICENSE](LICENSE) for details.
-
----
 
 <div align="center">
 
