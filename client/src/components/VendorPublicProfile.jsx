@@ -167,6 +167,11 @@ const VendorPublicProfile = () => {
   const initials = vendor.companyName?.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase() || "V";
   const foundedYear = vendor.experience ? new Date().getFullYear() - vendor.experience : null;
 
+  /* Compute a unique deterministic hue per vendor from company name (curated SaaS blue/indigo/teal/cyan/violet palette) */
+  const PROFESSIONAL_HUES = [215, 195, 235, 180, 225, 205, 245, 175, 220, 240, 190, 210];
+  const charHash = (vendor.companyName || "").split("").reduce((acc, char) => (acc * 31 + char.charCodeAt(0)) & 0xFFFF, 0);
+  const nameHue = PROFESSIONAL_HUES[Math.abs(charHash) % PROFESSIONAL_HUES.length];
+
   /* ── Trust badges derived from vendor data ── */
   const trustBadges = [];
   if (vendor.isVerified) trustBadges.push({ label: "✓ Verified", cls: "vp-badge-verified" });
@@ -205,7 +210,7 @@ const VendorPublicProfile = () => {
     <>
       <div style={{ minHeight: "100vh", background: "var(--ll-bg)" }}>
         {/* ── Cover Banner ── */}
-        <div className="vp-cover">
+        <div className={`vp-cover${bannerUrl ? ' vp-cover--has-image' : ''}`} style={{ '--vp-hue': nameHue }}>
           {bannerUrl ? (
             <img src={bannerUrl} alt="Cover" className="vp-cover-img" />
           ) : (
@@ -221,7 +226,7 @@ const VendorPublicProfile = () => {
         <div className="vp-header-wrap">
           <div className="vp-header">
             {/* Logo */}
-            <div className="vp-logo">
+            <div className="vp-logo" style={{ '--vp-hue': nameHue }}>
               {logoUrl
                 ? <img src={logoUrl} alt={vendor.companyName} />
                 : <div className="vp-logo-initials">{initials}</div>
@@ -258,9 +263,9 @@ const VendorPublicProfile = () => {
 
             {/* Action buttons */}
             <div className="vp-actions">
-              <button onClick={handleSaveVendor} className="vp-action-btn vp-action-save">🔖 Save</button>
+              <button onClick={handleSaveVendor} className="vp-action-btn vp-action-save" title="Save Vendor">🔖 Save</button>
               <button onClick={() => setShowInquiry(true)} className="vp-action-btn vp-action-enquire">📩 Contact</button>
-              <button onClick={() => setShowQuote(true)} className="ll-btn ll-btn-primary" style={{ padding: "10px 20px" }}>📋 Get Quote</button>
+              <button onClick={() => setShowQuote(true)} className="ll-btn ll-btn-primary vp-action-quote">📋 Get Quote</button>
             </div>
           </div>
 
@@ -316,8 +321,8 @@ const VendorPublicProfile = () => {
                 </div>
               </div>
 
-              {/* ── Sidebar ── */}
-              <div>
+              {/* ── Sidebar Wrapper ── */}
+              <aside className="vp-sidebar-sticky">
                 {/* Quick stats */}
                 <div className="vp-sidebar-card">
                   <h3 className="vp-sidebar-title">Quick Stats</h3>
@@ -341,7 +346,7 @@ const VendorPublicProfile = () => {
 
                 {/* Contact sidebar */}
                 {(vendor.mobile || vendor.email || vendor.socialLinks?.website) && (
-                  <div className="vp-sidebar-card" style={{ position: "static" }}>
+                  <div className="vp-sidebar-card">
                     <h3 className="vp-sidebar-title">📞 Quick Contact</h3>
                     {vendor.mobile && (
                       <div className="vp-stat-row">
@@ -373,7 +378,7 @@ const VendorPublicProfile = () => {
                     Request Quote →
                   </button>
                 </div>
-              </div>
+              </aside>
             </div>
           )}
 
@@ -420,7 +425,7 @@ const VendorPublicProfile = () => {
                             <StarDisplay rating={r.rating} size="0.95rem" />
                           </div>
                           <span className="vp-review-date">{new Date(r.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}</span>
-                      </div>
+                        </div>
                         <p className="vp-review-body">{r.comment}</p>
                         {r.vendorReply?.text && (
                           <div className="vp-review-vendor-reply">
@@ -449,37 +454,39 @@ const VendorPublicProfile = () => {
               </div>
 
               {/* Write review sidebar */}
-              <div className="vp-review-sidebar">
-                {userReview ? (
-                  <div className="vp-review-done">
-                    <div className="vp-review-done-icon">✅</div>
-                    <p style={{ fontWeight: 600, color: "var(--ll-text-1)", marginBottom: "4px" }}>You've reviewed this vendor</p>
-                    <p className="ll-body-sm">Thank you for your feedback!</p>
-                  </div>
-                ) : (
-                  <>
-                    <h3 className="vp-sidebar-title">Write a review</h3>
-                    {!isUser && <div className="ll-alert ll-alert-info" style={{ marginBottom: "16px" }}><span>Please <Link to="/login" className="ll-auth-link">log in</Link> to review.</span></div>}
-                    <form onSubmit={handleSubmitReview}>
-                      <div style={{ marginBottom: "14px" }}>
-                        <label className="ll-label">Your Rating</label>
-                        <StarInput value={reviewForm.rating} onChange={(v) => setReviewForm({ ...reviewForm, rating: v })} />
-                      </div>
-                      <div className="ll-form-group">
-                        <label className="ll-label" htmlFor="rev-title">Title</label>
-                        <input id="rev-title" className="ll-input" type="text" placeholder="Summary of your experience" value={reviewForm.title} onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })} disabled={!isUser || submittingReview} />
-                      </div>
-                      <div className="ll-form-group">
-                        <label className="ll-label" htmlFor="rev-comment">Review</label>
-                        <textarea id="rev-comment" className="ll-input" rows={4} placeholder="Tell others about your experience…" value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} disabled={!isUser || submittingReview} style={{ resize: "vertical", minHeight: "80px" }} />
-                      </div>
-                      <button type="submit" className="ll-btn ll-btn-primary ll-btn-block" disabled={!isUser || submittingReview}>
-                        {submittingReview ? "Submitting…" : "Submit Review"}
-                      </button>
-                    </form>
-                  </>
-                )}
-              </div>
+              <aside className="vp-sidebar-sticky">
+                <div className="vp-review-sidebar">
+                  {userReview ? (
+                    <div className="vp-review-done">
+                      <div className="vp-review-done-icon">✅</div>
+                      <p style={{ fontWeight: 600, color: "var(--ll-text-1)", marginBottom: "4px" }}>You've reviewed this vendor</p>
+                      <p className="ll-body-sm">Thank you for your feedback!</p>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="vp-sidebar-title">Write a review</h3>
+                      {!isUser && <div className="ll-alert ll-alert-info" style={{ marginBottom: "16px" }}><span>Please <Link to="/login" className="ll-auth-link">log in</Link> to review.</span></div>}
+                      <form onSubmit={handleSubmitReview}>
+                        <div style={{ marginBottom: "14px" }}>
+                          <label className="ll-label">Your Rating</label>
+                          <StarInput value={reviewForm.rating} onChange={(v) => setReviewForm({ ...reviewForm, rating: v })} />
+                        </div>
+                        <div className="ll-form-group">
+                          <label className="ll-label" htmlFor="rev-title">Title</label>
+                          <input id="rev-title" className="ll-input" type="text" placeholder="Summary of your experience" value={reviewForm.title} onChange={(e) => setReviewForm({ ...reviewForm, title: e.target.value })} disabled={!isUser || submittingReview} />
+                        </div>
+                        <div className="ll-form-group">
+                          <label className="ll-label" htmlFor="rev-comment">Review</label>
+                          <textarea id="rev-comment" className="ll-input" rows={4} placeholder="Tell others about your experience…" value={reviewForm.comment} onChange={(e) => setReviewForm({ ...reviewForm, comment: e.target.value })} disabled={!isUser || submittingReview} style={{ resize: "vertical", minHeight: "80px" }} />
+                        </div>
+                        <button type="submit" className="ll-btn ll-btn-primary ll-btn-block" disabled={!isUser || submittingReview}>
+                          {submittingReview ? "Submitting…" : "Submit Review"}
+                        </button>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </aside>
             </div>
           )}
 
