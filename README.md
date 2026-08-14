@@ -212,15 +212,19 @@ liftlink/
 
 | Home Page | Vendor Marketplace |
 |:---------:|:------------------:|
-| ![Home](assets/Screenshot%202025-04-24%20210826.png) | ![Explore](assets/Screenshot%202025-04-24%20210852.png) |
+| ![Home](assets/screenshots/home.png) | ![Explore](assets/screenshots/explore.png) |
 
 | Vendor Profile | Vendor Dashboard |
 |:--------------:|:----------------:|
-| ![Profile](assets/Screenshot%202025-04-24%20210929.png) | ![Dashboard](assets/Screenshot%202025-04-24%20211237.png) |
+| ![Profile](assets/screenshots/vendor-profile.png) | ![Dashboard](assets/screenshots/vendor-dashboard.png) |
 
 | User Dashboard | Admin Panel |
 |:--------------:|:-----------:|
-| ![User](assets/Screenshot%202025-04-24%20211057.png) | ![Admin](assets/Screenshot%202025-04-24%20211034.png) |
+| ![User](assets/screenshots/user-dashboard.png) | ![Admin](assets/screenshots/admin-dashboard.png) |
+
+| Login | About |
+|:-----:|:-----:|
+| ![Login](assets/screenshots/login.png) | ![About](assets/screenshots/about.png) |
 
 </div>
 
