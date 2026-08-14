@@ -37,7 +37,6 @@ const VendorPublicProfile = () => {
 
   const [vendor, setVendor] = useState(null);
   const [reviews, setReviews] = useState([]);
-  const [reviewDist, setReviewDist] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -63,7 +62,6 @@ const VendorPublicProfile = () => {
       ]);
       setVendor(vendorRes.data);
       setReviews(reviewRes.data.reviews || []);
-      setReviewDist(reviewRes.data.distribution || []);
       if (user) {
         const mine = reviewRes.data.reviews.find((r) => r.userId?.toString() === user._id?.toString());
         if (mine) setUserReview(mine);

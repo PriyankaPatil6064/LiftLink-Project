@@ -28,7 +28,7 @@ const Explore = () => {
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [inquiryForm, setInquiryForm] = useState({ userName: "", userEmail: "", message: "" });
   const [sendingInquiry, setSendingInquiry] = useState(false);
-  const { user, isUser } = useAuth();
+  const { user } = useAuth();
 
   useEffect(() => {
     api.get("/api/vendor/all")
