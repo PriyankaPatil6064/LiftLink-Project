@@ -297,6 +297,84 @@ router.put(
   }
 );
 
+// ─── POST /api/vendor/project ────────────────────────────────────────────────
+// Create a new project with multi-image upload
+router.post(
+  "/project",
+  protect,
+  authorize("vendor"),
+  upload.fields([{ name: "projectImages", maxCount: 10 }]),
+  async (req, res) => {
+    try {
+      const vendor = await Vendor.findById(req.vendor._id);
+      if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+      const { title, description, year, location, projectType, elevatorType, videoUrl } = req.body;
+      const images = req.files?.projectImages?.map((f) => f.filename) || [];
+
+      const newProject = {
+        _id: new mongoose.Types.ObjectId(),
+        title: title || "",
+        description: description || "",
+        year: year ? parseInt(year) : undefined,
+        location: location || "",
+        projectType: projectType || "",
+        elevatorType: elevatorType || "",
+        videoUrl: videoUrl || "",
+        images,
+        image: images[0] || "",
+      };
+
+      vendor.projects.push(newProject);
+      await vendor.save();
+      res.status(201).json({ message: "Project created", project: newProject });
+    } catch (error) {
+      res.status(500).json({ message: "Server Error", error: error.message });
+    }
+  }
+);
+
+// ─── PUT /api/vendor/project/:projectId ──────────────────────────────────────
+// Update an existing project (text fields + add new images)
+router.put(
+  "/project/:projectId",
+  protect,
+  authorize("vendor"),
+  upload.fields([{ name: "projectImages", maxCount: 10 }]),
+  async (req, res) => {
+    try {
+      const vendor = await Vendor.findById(req.vendor._id);
+      if (!vendor) return res.status(404).json({ message: "Vendor not found" });
+
+      const project = vendor.projects.id(req.params.projectId);
+      if (!project) return res.status(404).json({ message: "Project not found" });
+
+      // Update text fields
+      const fields = ["title", "description", "location", "projectType", "elevatorType", "videoUrl"];
+      fields.forEach((f) => { if (req.body[f] !== undefined) project[f] = req.body[f]; });
+      if (req.body.year) project.year = parseInt(req.body.year);
+
+      // Handle image removals
+      if (req.body.removeImages) {
+        try {
+          const toRemove = JSON.parse(req.body.removeImages);
+          project.images = (project.images || []).filter((img) => !toRemove.includes(img));
+        } catch {}
+      }
+
+      // Add new uploaded images
+      const newImages = req.files?.projectImages?.map((f) => f.filename) || [];
+      project.images = [...(project.images || []), ...newImages];
+      project.image = project.images[0] || project.image || "";
+
+      await vendor.save();
+      res.json({ message: "Project updated", project });
+    } catch (error) {
+      res.status(500).json({ message: "Server Error", error: error.message });
+    }
+  }
+);
+
 // ─── DELETE /api/vendor/project/:vendorId/:projectId ─────────────────────────
 router.delete("/project/:vendorId/:projectId", protect, authorize("vendor"), async (req, res) => {
   try {

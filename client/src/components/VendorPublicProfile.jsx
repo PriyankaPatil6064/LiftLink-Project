@@ -54,6 +54,10 @@ const VendorPublicProfile = () => {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [userReview, setUserReview] = useState(null);
 
+  // Project detail modal
+  const [selectedProject, setSelectedProject] = useState(null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
   const fetchData = useCallback(async () => {
     try {
       const [vendorRes, reviewRes] = await Promise.all([
@@ -197,8 +201,25 @@ const VendorPublicProfile = () => {
     return "🛠️";
   };
 
+  /* ── Project helpers ── */
+  const getProjectImage = (project) => {
+    if (project.images?.length > 0) return `${API_BASE}/uploads/${project.images[0]}`;
+    if (project.image) return `${API_BASE}/uploads/${project.image}`;
+    return null;
+  };
+  const getProjectImages = (project) => {
+    if (project.images?.length > 0) return project.images.map((img) => `${API_BASE}/uploads/${img}`);
+    if (project.image) return [`${API_BASE}/uploads/${project.image}`];
+    return [];
+  };
+  const openProjectDetail = (project) => {
+    setSelectedProject(project);
+    setGalleryIndex(0);
+  };
+
   const tabs = [
     { id: "overview",  label: "Overview",  icon: "📋" },
+    ...(vendor.projects?.length > 0 ? [{ id: "projects", label: `Projects (${vendor.projects.length})`, icon: "🏗" }] : []),
     { id: "services",  label: "Services",  icon: "🛠️" },
     { id: "reviews",   label: `Reviews${reviews.length ? ` (${reviews.length})` : ""}`, icon: "⭐" },
     { id: "contact",   label: "Contact",   icon: "📞" },
@@ -218,6 +239,12 @@ const VendorPublicProfile = () => {
             </>
           )}
           <div className="vp-cover-gradient" />
+          {/* Company name ON the banner */}
+          <div className="vp-banner-text">
+            <h1 className="vp-banner-name">{vendor.companyName}</h1>
+            {vendor.tagline && <p className="vp-banner-tagline">{vendor.tagline}</p>}
+            {vendor.location && <p className="vp-banner-location">📍 {vendor.location}</p>}
+          </div>
         </div>
 
         {/* ── Profile Header ── */}
@@ -319,6 +346,47 @@ const VendorPublicProfile = () => {
                 </div>
               </div>
 
+              {/* Featured Projects on Overview */}
+              {vendor.projects?.length > 0 && (
+                <div className="vp-section-card" style={{ gridColumn: "1 / -1" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
+                    <h2 className="vp-section-title" style={{ marginBottom: 0 }}>
+                      <span className="vp-section-title-icon">🏗</span>
+                      Featured Projects
+                    </h2>
+                    {vendor.projects.length > 3 && (
+                      <button onClick={() => setActiveTab("projects")} className="vp-view-all-link">View All ({vendor.projects.length}) →</button>
+                    )}
+                  </div>
+                  <div className="vp-projects-grid">
+                    {vendor.projects.slice(0, 3).map((p) => {
+                      const imgUrl = getProjectImage(p);
+                      const hue = (p.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0) % 360;
+                      return (
+                        <div key={p._id} className="vp-project-card" onClick={() => openProjectDetail(p)}>
+                          <div className="vp-project-card-img" style={imgUrl ? { backgroundImage: `url(${imgUrl})` } : { background: `linear-gradient(135deg, hsl(${hue},45%,88%), hsl(${hue + 40},40%,82%))` }}>
+                            {!imgUrl && <div className="vp-project-card-placeholder">🏗</div>}
+                            {p.videoUrl && <span className="vp-project-badge">🎬 Video</span>}
+                            {p.images?.length > 1 && <span className="vp-project-badge vp-project-badge-bottom">📷 {p.images.length}</span>}
+                          </div>
+                          <div className="vp-project-card-body">
+                            <h4 className="vp-project-card-title">{p.title || "Project"}</h4>
+                            {p.description && <p className="vp-project-card-desc">{p.description}</p>}
+                            <div className="vp-project-card-meta">
+                              {p.location && <span>📍 {p.location}</span>}
+                              {p.year && <span>📅 {p.year}</span>}
+                              {p.projectType && <span>{p.projectType}</span>}
+                              {p.elevatorType && <span>{p.elevatorType}</span>}
+                            </div>
+                            <span className="vp-project-card-link">View Project →</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* ── Sidebar Wrapper ── */}
               <aside className="vp-sidebar-sticky">
                 {/* Quick stats */}
@@ -377,6 +445,47 @@ const VendorPublicProfile = () => {
                   </button>
                 </div>
               </aside>
+            </div>
+          )}
+
+          {/* ══════════════════════════════════════════════ */}
+          {/* ── TAB: Projects ──                           */}
+          {/* ══════════════════════════════════════════════ */}
+          {activeTab === "projects" && (
+            <div className="vp-content-full">
+              {vendor.projects?.length > 0 ? (
+                <div className="vp-projects-grid vp-projects-grid--full">
+                  {vendor.projects.map((p) => {
+                    const imgUrl = getProjectImage(p);
+                    const hue = (p.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0) % 360;
+                    return (
+                      <div key={p._id} className="vp-project-card" onClick={() => openProjectDetail(p)}>
+                        <div className="vp-project-card-img" style={imgUrl ? { backgroundImage: `url(${imgUrl})` } : { background: `linear-gradient(135deg, hsl(${hue},45%,88%), hsl(${hue + 40},40%,82%))` }}>
+                          {!imgUrl && <div className="vp-project-card-placeholder">🏗</div>}
+                          {p.videoUrl && <span className="vp-project-badge">🎬 Video</span>}
+                          {p.images?.length > 1 && <span className="vp-project-badge vp-project-badge-bottom">📷 {p.images.length}</span>}
+                        </div>
+                        <div className="vp-project-card-body">
+                          <h4 className="vp-project-card-title">{p.title || "Project"}</h4>
+                          {p.description && <p className="vp-project-card-desc">{p.description}</p>}
+                          <div className="vp-project-card-meta">
+                            {p.location && <span>📍 {p.location}</span>}
+                            {p.year && <span>📅 {p.year}</span>}
+                            {p.projectType && <span>{p.projectType}</span>}
+                            {p.elevatorType && <span>{p.elevatorType}</span>}
+                          </div>
+                          <span className="vp-project-card-link">View Project →</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="vp-empty">
+                  <div className="vp-empty-icon">🏗</div>
+                  <p className="vp-empty-text">No projects showcased yet.</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -653,6 +762,74 @@ const VendorPublicProfile = () => {
           </div>
         </div>
       )}
+
+      {/* ══════════════════════════════════════════════ */}
+      {/* ── Project Detail Modal ──                    */}
+      {/* ══════════════════════════════════════════════ */}
+      {selectedProject && (() => {
+        const p = selectedProject;
+        const imgs = getProjectImages(p);
+        const hue = (p.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0) % 360;
+        return (
+          <div className="vp-modal-backdrop" onClick={() => setSelectedProject(null)}>
+            <div className="vp-modal vp-project-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="vp-modal-header">
+                <div>
+                  <h2 className="vp-modal-title">{p.title || "Project Details"}</h2>
+                  <p className="vp-modal-subtitle">{vendor.companyName}</p>
+                </div>
+                <button onClick={() => setSelectedProject(null)} className="vp-modal-close">✕</button>
+              </div>
+
+              {/* Gallery */}
+              <div className="vp-project-gallery" style={imgs.length === 0 ? { background: `linear-gradient(135deg, hsl(${hue},45%,88%), hsl(${hue + 40},40%,82%))` } : {}}>
+                {imgs.length > 0 ? (
+                  <>
+                    <img src={imgs[galleryIndex]} alt={p.title} className="vp-project-gallery-img" />
+                    {imgs.length > 1 && (
+                      <>
+                        <button className="vp-gallery-nav vp-gallery-prev" onClick={() => setGalleryIndex((i) => (i - 1 + imgs.length) % imgs.length)}>‹</button>
+                        <button className="vp-gallery-nav vp-gallery-next" onClick={() => setGalleryIndex((i) => (i + 1) % imgs.length)}>›</button>
+                        <div className="vp-gallery-dots">
+                          {imgs.map((_, i) => (
+                            <span key={i} className={`vp-gallery-dot${i === galleryIndex ? " active" : ""}`} onClick={() => setGalleryIndex(i)} />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: "4rem", color: `hsl(${hue},30%,65%)` }}>🏗</div>
+                )}
+              </div>
+
+              {/* Details */}
+              <div style={{ padding: "24px" }}>
+                <div className="vp-project-detail-meta">
+                  {p.location && <span className="vp-project-detail-chip">📍 {p.location}</span>}
+                  {p.year && <span className="vp-project-detail-chip">📅 {p.year}</span>}
+                  {p.projectType && <span className="vp-project-detail-chip">{p.projectType}</span>}
+                  {p.elevatorType && <span className="vp-project-detail-chip">{p.elevatorType}</span>}
+                </div>
+                {p.description && <p style={{ color: "var(--ll-text-2)", fontSize: "0.95rem", lineHeight: 1.7, marginBottom: "20px" }}>{p.description}</p>}
+
+                {/* Video */}
+                {p.videoUrl && (
+                  <div style={{ marginBottom: "20px" }}>
+                    <a href={p.videoUrl} target="_blank" rel="noopener noreferrer" className="vp-action-btn vp-action-save" style={{ textDecoration: "none" }}>🎬 Watch Project Video →</a>
+                  </div>
+                )}
+
+                {/* CTA */}
+                <div className="vp-contact-buttons" style={{ marginTop: "20px" }}>
+                  <button onClick={() => { setSelectedProject(null); setShowInquiry(true); }} className="ll-btn ll-btn-secondary" style={{ flex: 1, padding: "13px" }}>📩 Contact Vendor</button>
+                  <button onClick={() => { setSelectedProject(null); setShowQuote(true); }} className="ll-btn ll-btn-primary" style={{ flex: 1, padding: "13px" }}>📋 Get a Quote</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       <Footer />
     </>

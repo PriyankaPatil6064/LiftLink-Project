@@ -6,6 +6,7 @@ import api from "../api";
 import ManageProfile from "./ManageProfile";
 import ManageServices from "./ManageServices";
 import ManageInquiries from "./ManageInquiries";
+import ManageProjects from "./ManageProjects";
 
 
 
@@ -112,6 +113,7 @@ const VendorHome = ({ vendor }) => {
           <div className="dash-quick-grid">
             {[
               { to: "/vendorDashboard/profile", label: "✏️ Update Profile" },
+              { to: "/vendorDashboard/projects", label: "🏗 Manage Projects" },
               { to: "/vendorDashboard/services", label: "🔧 Manage Services" },
               { to: "/vendorDashboard/inquiries", label: "📩 View Inquiries" },
               { to: "/vendorDashboard/quotes", label: "📋 Manage Quotes" },
@@ -274,6 +276,7 @@ const VendorDashboard = () => {
   const navLinks = [
     { to: "/vendorDashboard",           label: "Dashboard",       icon: "📊", exact: true },
     { to: "/vendorDashboard/profile",   label: "Manage Profile",  icon: "👤" },
+    { to: "/vendorDashboard/projects",  label: "Projects",        icon: "🏗" },
     { to: "/vendorDashboard/services",  label: "Services",        icon: "🔧" },
     { to: "/vendorDashboard/inquiries", label: "Inquiries",       icon: "📩" },
     { to: "/vendorDashboard/quotes",    label: "Quotes",          icon: "📋" },
@@ -322,6 +325,7 @@ const VendorDashboard = () => {
         <Routes>
           <Route index element={<VendorHome vendor={vendor} />} />
           <Route path="profile" element={<ManageProfile />} />
+          <Route path="projects" element={<ManageProjects />} />
           <Route path="services" element={<ManageServices />} />
           <Route path="inquiries" element={<ManageInquiries />} />
           <Route path="quotes" element={<ManageQuotes />} />

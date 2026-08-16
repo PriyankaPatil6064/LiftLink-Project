@@ -4,11 +4,15 @@ import { ServiceSchema } from "./Service.js";
 
 const projectSchema = new mongoose.Schema({
   _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-  image: String,
-  description: String,
   title: String,
+  description: String,
+  image: String,                // Legacy single image (backward compat)
+  images: [String],             // Multiple images
   year: Number,
   location: String,
+  projectType: String,          // Commercial, Residential, Industrial, etc.
+  elevatorType: String,         // Passenger, Freight, Hospital, etc.
+  videoUrl: String,             // YouTube / external video URL
 });
 
 const businessHoursSchema = new mongoose.Schema({
