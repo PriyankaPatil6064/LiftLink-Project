@@ -56,14 +56,14 @@ const HomeAboutSection = () => {
         </div>
 
         {/* About Split */}
-        <div style={{
+        <div className="home-about-split" style={{
           display: "grid",
           gridTemplateColumns: "1fr 1fr",
           gap: "64px",
           alignItems: "center",
         }}>
           {/* Image */}
-          <div>
+          <div className="home-about-img">
             <img
               src={b2b1}
               alt="LiftLink elevator services"
@@ -78,7 +78,7 @@ const HomeAboutSection = () => {
           </div>
 
           {/* Text */}
-          <div>
+          <div className="home-about-text">
             <p style={{ fontSize: "0.75rem", fontWeight: 600, color: "var(--ll-primary)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: "12px" }}>Our Platform</p>
             <h2 style={{ fontSize: "clamp(1.5rem, 2.5vw, 2rem)", fontWeight: 800, color: "var(--ll-text-1)", letterSpacing: "-0.02em", marginBottom: "16px", lineHeight: 1.2 }}>
               Connecting builders with the right elevator partners
@@ -119,7 +119,33 @@ const HomeAboutSection = () => {
 
       <style>{`
         @media (max-width: 768px) {
-          .home-about-split { grid-template-columns: 1fr !important; }
+          .home-about-split {
+            grid-template-columns: 1fr !important;
+            gap: 0 !important;
+            background-image: url(${b2b1});
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            border-radius: 20px;
+            position: relative;
+            padding: 48px 24px !important;
+            min-height: 420px;
+          }
+          .home-about-split::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: rgba(255, 255, 255, 0.88);
+            border-radius: 20px;
+            z-index: 1;
+          }
+          .home-about-img {
+            display: none !important;
+          }
+          .home-about-text {
+            position: relative;
+            z-index: 2;
+          }
         }
       `}</style>
     </section>
