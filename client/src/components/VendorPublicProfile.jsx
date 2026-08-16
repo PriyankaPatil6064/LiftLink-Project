@@ -201,16 +201,41 @@ const VendorPublicProfile = () => {
     return "🛠️";
   };
 
-  /* ── Project helpers ── */
+  /* ── Demo project images (Unsplash CDN — used when projects lack uploaded media) ── */
+  const DEMO_PROJECT_IMAGES = [
+    "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&q=80",
+    "https://images.unsplash.com/photo-1480714378408-67cf0d13bc1b?w=800&q=80",
+    "https://images.unsplash.com/photo-1554435493-93422e8220c8?w=800&q=80",
+    "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80",
+    "https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=800&q=80",
+    "https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=800&q=80",
+    "https://images.unsplash.com/photo-1565008447742-97f6f38c985c?w=800&q=80",
+    "https://images.unsplash.com/photo-1503387762-592deb58ef4e?w=800&q=80",
+    "https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=800&q=80",
+    "https://images.unsplash.com/photo-1459767129954-1b1c1f9b9ace?w=800&q=80",
+    "https://images.unsplash.com/photo-1504307651254-35680f356dfd?w=800&q=80",
+    "https://images.unsplash.com/photo-1577495508326-19a1b3cf65b7?w=800&q=80",
+  ];
+  const getDemoImage = (project, idx = 0) => {
+    const seed = (project.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0);
+    return DEMO_PROJECT_IMAGES[(seed + idx) % DEMO_PROJECT_IMAGES.length];
+  };
+  const resolveImgUrl = (path) => {
+    if (!path) return null;
+    if (path.startsWith("http")) return path;
+    return `${API_BASE}/uploads/${path}`;
+  };
+
   const getProjectImage = (project) => {
-    if (project.images?.length > 0) return `${API_BASE}/uploads/${project.images[0]}`;
-    if (project.image) return `${API_BASE}/uploads/${project.image}`;
-    return null;
+    if (project.images?.length > 0) return resolveImgUrl(project.images[0]);
+    if (project.image) return resolveImgUrl(project.image);
+    return getDemoImage(project);
   };
   const getProjectImages = (project) => {
-    if (project.images?.length > 0) return project.images.map((img) => `${API_BASE}/uploads/${img}`);
-    if (project.image) return [`${API_BASE}/uploads/${project.image}`];
-    return [];
+    if (project.images?.length > 0) return project.images.map((img) => resolveImgUrl(img));
+    if (project.image) return [resolveImgUrl(project.image)];
+    // Generate 3 varied demo images for gallery feel
+    return [getDemoImage(project, 0), getDemoImage(project, 3), getDemoImage(project, 7)];
   };
   const openProjectDetail = (project) => {
     setSelectedProject(project);
@@ -350,10 +375,13 @@ const VendorPublicProfile = () => {
               {vendor.projects?.length > 0 && (
                 <div className="vp-section-card" style={{ gridColumn: "1 / -1" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-                    <h2 className="vp-section-title" style={{ marginBottom: 0 }}>
-                      <span className="vp-section-title-icon">🏗</span>
-                      Featured Projects
-                    </h2>
+                    <div>
+                      <h2 className="vp-section-title" style={{ marginBottom: "4px" }}>
+                        <span className="vp-section-title-icon">🏗</span>
+                        Projects & Past Work
+                      </h2>
+                      <p style={{ color: "var(--ll-text-3)", fontSize: "0.875rem", margin: 0 }}>See what {vendor.companyName} has built and delivered.</p>
+                    </div>
                     {vendor.projects.length > 3 && (
                       <button onClick={() => setActiveTab("projects")} className="vp-view-all-link">View All ({vendor.projects.length}) →</button>
                     )}
@@ -361,13 +389,16 @@ const VendorPublicProfile = () => {
                   <div className="vp-projects-grid">
                     {vendor.projects.slice(0, 3).map((p) => {
                       const imgUrl = getProjectImage(p);
-                      const hue = (p.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0) % 360;
+                      const imgCount = p.images?.length || 0;
                       return (
                         <div key={p._id} className="vp-project-card" onClick={() => openProjectDetail(p)}>
-                          <div className="vp-project-card-img" style={imgUrl ? { backgroundImage: `url(${imgUrl})` } : { background: `linear-gradient(135deg, hsl(${hue},45%,88%), hsl(${hue + 40},40%,82%))` }}>
-                            {!imgUrl && <div className="vp-project-card-placeholder">🏗</div>}
+                          <div className="vp-project-card-img-wrap">
+                            <div className="vp-project-card-img" style={{ backgroundImage: `url(${imgUrl})` }} />
+                            <div className="vp-project-card-overlay">
+                              <span className="vp-project-card-overlay-text">View Project →</span>
+                            </div>
                             {p.videoUrl && <span className="vp-project-badge">🎬 Video</span>}
-                            {p.images?.length > 1 && <span className="vp-project-badge vp-project-badge-bottom">📷 {p.images.length}</span>}
+                            {imgCount > 1 && <span className="vp-project-badge vp-project-badge-bottom">📷 {imgCount}</span>}
                           </div>
                           <div className="vp-project-card-body">
                             <h4 className="vp-project-card-title">{p.title || "Project"}</h4>
@@ -378,7 +409,6 @@ const VendorPublicProfile = () => {
                               {p.projectType && <span>{p.projectType}</span>}
                               {p.elevatorType && <span>{p.elevatorType}</span>}
                             </div>
-                            <span className="vp-project-card-link">View Project →</span>
                           </div>
                         </div>
                       );
@@ -453,17 +483,27 @@ const VendorPublicProfile = () => {
           {/* ══════════════════════════════════════════════ */}
           {activeTab === "projects" && (
             <div className="vp-content-full">
+              <div style={{ marginBottom: "24px" }}>
+                <h2 className="vp-section-title" style={{ marginBottom: "4px" }}>
+                  <span className="vp-section-title-icon">🏗</span>
+                  All Projects ({vendor.projects?.length || 0})
+                </h2>
+                <p style={{ color: "var(--ll-text-3)", fontSize: "0.875rem", margin: 0 }}>Complete portfolio of projects delivered by {vendor.companyName}.</p>
+              </div>
               {vendor.projects?.length > 0 ? (
                 <div className="vp-projects-grid vp-projects-grid--full">
                   {vendor.projects.map((p) => {
                     const imgUrl = getProjectImage(p);
-                    const hue = (p.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0) % 360;
+                    const imgCount = p.images?.length || 0;
                     return (
                       <div key={p._id} className="vp-project-card" onClick={() => openProjectDetail(p)}>
-                        <div className="vp-project-card-img" style={imgUrl ? { backgroundImage: `url(${imgUrl})` } : { background: `linear-gradient(135deg, hsl(${hue},45%,88%), hsl(${hue + 40},40%,82%))` }}>
-                          {!imgUrl && <div className="vp-project-card-placeholder">🏗</div>}
+                        <div className="vp-project-card-img-wrap">
+                          <div className="vp-project-card-img" style={{ backgroundImage: `url(${imgUrl})` }} />
+                          <div className="vp-project-card-overlay">
+                            <span className="vp-project-card-overlay-text">View Project →</span>
+                          </div>
                           {p.videoUrl && <span className="vp-project-badge">🎬 Video</span>}
-                          {p.images?.length > 1 && <span className="vp-project-badge vp-project-badge-bottom">📷 {p.images.length}</span>}
+                          {imgCount > 1 && <span className="vp-project-badge vp-project-badge-bottom">📷 {imgCount}</span>}
                         </div>
                         <div className="vp-project-card-body">
                           <h4 className="vp-project-card-title">{p.title || "Project"}</h4>
@@ -474,7 +514,6 @@ const VendorPublicProfile = () => {
                             {p.projectType && <span>{p.projectType}</span>}
                             {p.elevatorType && <span>{p.elevatorType}</span>}
                           </div>
-                          <span className="vp-project-card-link">View Project →</span>
                         </div>
                       </div>
                     );
@@ -769,61 +808,72 @@ const VendorPublicProfile = () => {
       {selectedProject && (() => {
         const p = selectedProject;
         const imgs = getProjectImages(p);
-        const hue = (p.title || "").split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) & 0xFFFF, 0) % 360;
         return (
           <div className="vp-modal-backdrop" onClick={() => setSelectedProject(null)}>
             <div className="vp-modal vp-project-modal" onClick={(e) => e.stopPropagation()}>
-              <div className="vp-modal-header">
-                <div>
-                  <h2 className="vp-modal-title">{p.title || "Project Details"}</h2>
-                  <p className="vp-modal-subtitle">{vendor.companyName}</p>
+              {/* Scrollable body */}
+              <div className="vp-project-modal-scroll">
+                {/* Header */}
+                <div className="vp-project-modal-head">
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <h2 className="vp-project-modal-title">{p.title || "Project Details"}</h2>
+                    <p className="vp-project-modal-vendor">by {vendor.companyName}</p>
+                  </div>
+                  <button onClick={() => setSelectedProject(null)} className="vp-modal-close" style={{ flexShrink: 0 }}>✕</button>
                 </div>
-                <button onClick={() => setSelectedProject(null)} className="vp-modal-close">✕</button>
-              </div>
 
-              {/* Gallery */}
-              <div className="vp-project-gallery" style={imgs.length === 0 ? { background: `linear-gradient(135deg, hsl(${hue},45%,88%), hsl(${hue + 40},40%,82%))` } : {}}>
-                {imgs.length > 0 ? (
-                  <>
-                    <img src={imgs[galleryIndex]} alt={p.title} className="vp-project-gallery-img" />
-                    {imgs.length > 1 && (
-                      <>
-                        <button className="vp-gallery-nav vp-gallery-prev" onClick={() => setGalleryIndex((i) => (i - 1 + imgs.length) % imgs.length)}>‹</button>
-                        <button className="vp-gallery-nav vp-gallery-next" onClick={() => setGalleryIndex((i) => (i + 1) % imgs.length)}>›</button>
-                        <div className="vp-gallery-dots">
-                          {imgs.map((_, i) => (
-                            <span key={i} className={`vp-gallery-dot${i === galleryIndex ? " active" : ""}`} onClick={() => setGalleryIndex(i)} />
-                          ))}
-                        </div>
-                      </>
-                    )}
-                  </>
-                ) : (
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", fontSize: "4rem", color: `hsl(${hue},30%,65%)` }}>🏗</div>
-                )}
-              </div>
-
-              {/* Details */}
-              <div style={{ padding: "24px" }}>
-                <div className="vp-project-detail-meta">
-                  {p.location && <span className="vp-project-detail-chip">📍 {p.location}</span>}
-                  {p.year && <span className="vp-project-detail-chip">📅 {p.year}</span>}
-                  {p.projectType && <span className="vp-project-detail-chip">{p.projectType}</span>}
-                  {p.elevatorType && <span className="vp-project-detail-chip">{p.elevatorType}</span>}
+                {/* Main Image */}
+                <div className="vp-project-gallery">
+                  <img src={imgs[galleryIndex] || imgs[0]} alt={p.title} className="vp-project-gallery-img" />
+                  {imgs.length > 1 && (
+                    <>
+                      <button className="vp-gallery-nav vp-gallery-prev" onClick={() => setGalleryIndex((i) => (i - 1 + imgs.length) % imgs.length)}>‹</button>
+                      <button className="vp-gallery-nav vp-gallery-next" onClick={() => setGalleryIndex((i) => (i + 1) % imgs.length)}>›</button>
+                      <span className="vp-gallery-counter">{galleryIndex + 1} / {imgs.length}</span>
+                    </>
+                  )}
                 </div>
-                {p.description && <p style={{ color: "var(--ll-text-2)", fontSize: "0.95rem", lineHeight: 1.7, marginBottom: "20px" }}>{p.description}</p>}
 
-                {/* Video */}
-                {p.videoUrl && (
-                  <div style={{ marginBottom: "20px" }}>
-                    <a href={p.videoUrl} target="_blank" rel="noopener noreferrer" className="vp-action-btn vp-action-save" style={{ textDecoration: "none" }}>🎬 Watch Project Video →</a>
+                {/* Thumbnail strip */}
+                {imgs.length > 1 && (
+                  <div className="vp-gallery-thumbs">
+                    {imgs.map((src, i) => (
+                      <div key={i} className={`vp-gallery-thumb${i === galleryIndex ? " active" : ""}`} onClick={() => setGalleryIndex(i)}>
+                        <img src={src} alt={`${p.title} ${i + 1}`} />
+                      </div>
+                    ))}
                   </div>
                 )}
 
+                {/* Details */}
+                <div className="vp-project-modal-details">
+                  <div className="vp-project-detail-meta">
+                    {p.location && <span className="vp-project-detail-chip">📍 {p.location}</span>}
+                    {p.year && <span className="vp-project-detail-chip">📅 {p.year}</span>}
+                    {p.projectType && <span className="vp-project-detail-chip">🏢 {p.projectType}</span>}
+                    {p.elevatorType && <span className="vp-project-detail-chip">🛗 {p.elevatorType}</span>}
+                  </div>
+                  {p.description && (
+                    <div style={{ marginBottom: "20px" }}>
+                      <h4 style={{ fontWeight: 700, color: "var(--ll-text-1)", marginBottom: "8px", fontSize: "0.9rem" }}>About This Project</h4>
+                      <p style={{ color: "var(--ll-text-2)", fontSize: "0.95rem", lineHeight: 1.75, margin: 0 }}>{p.description}</p>
+                    </div>
+                  )}
+                  {p.videoUrl && (
+                    <a href={p.videoUrl} target="_blank" rel="noopener noreferrer" className="vp-project-video-link">
+                      🎬 Watch Project Video →
+                    </a>
+                  )}
+                </div>
+
                 {/* CTA */}
-                <div className="vp-contact-buttons" style={{ marginTop: "20px" }}>
-                  <button onClick={() => { setSelectedProject(null); setShowInquiry(true); }} className="ll-btn ll-btn-secondary" style={{ flex: 1, padding: "13px" }}>📩 Contact Vendor</button>
-                  <button onClick={() => { setSelectedProject(null); setShowQuote(true); }} className="ll-btn ll-btn-primary" style={{ flex: 1, padding: "13px" }}>📋 Get a Quote</button>
+                <div className="vp-project-modal-cta">
+                  <button onClick={() => { setSelectedProject(null); setShowInquiry(true); }} className="ll-btn ll-btn-secondary vp-project-cta-btn">
+                    📩 Contact Vendor
+                  </button>
+                  <button onClick={() => { setSelectedProject(null); setShowQuote(true); }} className="ll-btn ll-btn-primary vp-project-cta-btn">
+                    📋 Get a Quote
+                  </button>
                 </div>
               </div>
             </div>
