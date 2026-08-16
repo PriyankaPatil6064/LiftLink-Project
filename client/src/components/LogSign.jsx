@@ -142,11 +142,7 @@ const LogSign = () => {
         ))}
       </div>
 
-      {/* Admin link */}
-      <p style={{ marginTop: "40px", color: "var(--ll-text-3)", fontSize: "0.8rem" }}>
-        Admin?{" "}
-        <Link to="/admin/login" style={{ color: "var(--ll-text-2)", fontWeight: 500 }}>Admin Portal →</Link>
-      </p>
+
     </div>
   );
 };
