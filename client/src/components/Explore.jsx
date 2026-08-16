@@ -29,16 +29,33 @@ const Explore = () => {
   const [inquiryForm, setInquiryForm] = useState({ userName: "", userEmail: "", message: "" });
   const [sendingInquiry, setSendingInquiry] = useState(false);
   const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   useEffect(() => {
-    api.get("/api/vendor/all")
-      .then((res) => {
-        const list = res.data?.vendors || [];
+    const fetchVendors = async (retries = 2) => {
+      try {
+        const res = await api.get("/api/vendor/all", { timeout: 15000 });
+        const data = res.data;
+        const list = data?.vendors || [];
         setVendors(list);
         setFiltered(list);
-      })
-      .catch(() => toast.error("Failed to load vendors. Please try again."))
-      .finally(() => setLoading(false));
+        setTotalPages(data?.pages || 1);
+        setCurrentPage(data?.page || 1);
+        setHasMore(data?.hasMore || false);
+      } catch (err) {
+        if (retries > 0) {
+          await new Promise((r) => setTimeout(r, retries === 2 ? 2000 : 5000));
+          return fetchVendors(retries - 1);
+        }
+        toast.error("Failed to load vendors. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchVendors();
   }, []);
 
   useEffect(() => {
@@ -101,6 +118,25 @@ const Explore = () => {
         toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to send inquiry.");
       }
     } finally { setSendingInquiry(false); }
+  };
+
+  const loadMoreVendors = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const nextPage = currentPage + 1;
+      const res = await api.get(`/api/vendor/all?page=${nextPage}`, { timeout: 15000 });
+      const data = res.data;
+      const newVendors = data?.vendors || [];
+      setVendors((prev) => [...prev, ...newVendors]);
+      setCurrentPage(data?.page || nextPage);
+      setHasMore(data?.hasMore || false);
+      setTotalPages(data?.pages || totalPages);
+    } catch {
+      toast.error("Failed to load more vendors.");
+    } finally {
+      setLoadingMore(false);
+    }
   };
 
   const categories = ["Elevators", "Installation", "Modernization"];
@@ -350,6 +386,20 @@ const Explore = () => {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Load More */}
+          {!loading && hasMore && filtered.length > 0 && !searchQuery && !categoryFilter && (
+            <div style={{ textAlign: "center", marginTop: "32px" }}>
+              <button
+                onClick={loadMoreVendors}
+                disabled={loadingMore}
+                className="ll-btn ll-btn-primary"
+                style={{ padding: "12px 32px", fontSize: "0.9rem" }}
+              >
+                {loadingMore ? "Loading…" : `Load More Vendors (Page ${currentPage} of ${totalPages})`}
+              </button>
             </div>
           )}
 
