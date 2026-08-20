@@ -2048,7 +2048,7 @@ body {
   max-width: 1140px;
   margin: 0 auto;
   padding: 0 var(--ll-sp-6);
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 .vp-header {
   display: flex;
