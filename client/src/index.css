@@ -2979,7 +2979,7 @@ body {
 /* ═══════════════════════════════════════════════════ */
 .vp-banner-text {
   position: absolute;
-  bottom: 28px;
+  bottom: 80px;
   left: 0;
   right: 0;
   z-index: 3;
@@ -3364,11 +3364,11 @@ body {
 
 /* ── Project Portfolio Responsive ── */
 @media (max-width: 960px) {
-  .vp-banner-text { padding: 0 var(--ll-sp-6); bottom: 22px; }
+  .vp-banner-text { padding: 0 var(--ll-sp-6); bottom: 60px; }
   .vp-banner-name { font-size: 1.6rem; }
 }
 @media (max-width: 640px) {
-  .vp-banner-text { padding: 0 var(--ll-sp-4); bottom: 16px; }
+  .vp-banner-text { padding: 0 var(--ll-sp-4); bottom: 50px; }
   .vp-banner-name { font-size: 1.25rem; }
   .vp-banner-tagline { font-size: 0.8rem; }
   .vp-banner-location { font-size: 0.75rem; }
